@@ -63,7 +63,7 @@ Options:
 
 ### Ignore File
 
-If you specify an ignore file (like `.gitignore`) and the zip file will be created within the directory structure you're zipping, be sure to include `.zip` or a similar ignore entry otherwise it will **NOT** ignore the zip file.
+The ignore file is _relative to the destination directory_. If the zip file will be created within the destination, be sure to include `.zip` or a similar ignore entry otherwise it will **NOT** ignore the zip file.
 
 [changelog-image]: https://img.shields.io/badge/changelog-md-blue.svg?style=flat-square
 [changelog-url]: CHANGELOG.md
