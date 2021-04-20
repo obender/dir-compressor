@@ -3,6 +3,7 @@
 const path = require("path");
 const fs = require("fs");
 const archiver = require("archiver");
+const Ignore = require("fstream-ignore");
 
 class DirArchiver {
   /**
@@ -10,12 +11,23 @@ class DirArchiver {
    * @param {string} directoryPath - the path of the folder to archive.
    * @param {string} zipPath - The path of the zip file to create.
    * @param {array} excludes - The name of the files and foldes to exclude.
+   * @param {string} ignoreFile - A .gitignore or similar file to respect.
+   * @param {boolean} verbose - Whether or not to be noisy.
    */
-  constructor(directoryPath, zipPath, excludes, flat = true) {
+  constructor(
+    directoryPath,
+    zipPath,
+    excludes,
+    flat = true,
+    ignoreFile,
+    verbose = false
+  ) {
     this.excludes = excludes;
     this.directoryPath = directoryPath;
     this.zipPath = zipPath;
     this.flat = flat;
+    this.ignoreFile = ignoreFile;
+    this.verbose = verbose;
     if (this.flat) {
       this.zipPathPrefix = directoryPath.replace("./", "").split("/")[0];
       if (this.zipPathPrefix == ".") {
@@ -34,7 +46,9 @@ class DirArchiver {
       const currentPath = directoryPath + "/" + files[i];
       const stats = fs.statSync(currentPath);
       const relativePath = path.relative(process.cwd(), currentPath);
-      const isExcluded = this.excludes.includes(directoryPath) || this.excludes.includes(files[i]);
+      const isExcluded =
+        this.excludes.includes(directoryPath) ||
+        this.excludes.includes(files[i]);
 
       if (stats.isFile() && !isExcluded) {
         let targetPath = currentPath;
@@ -65,16 +79,24 @@ class DirArchiver {
       return Math.round((bytes / 1000000 + Number.EPSILON) * 100) / 100 + " MB";
     }
     if (bytes > 1000000000) {
-      return Math.round((bytes / 1000000000 + Number.EPSILON) * 100) / 100 + " GB";
+      return (
+        Math.round((bytes / 1000000000 + Number.EPSILON) * 100) / 100 + " GB"
+      );
     }
     return bytes + " bytes";
   }
 
-  createZip() {
+  createZip(done) {
     const self = this;
 
     if (fs.existsSync(this.zipPath)) {
       fs.unlinkSync(this.zipPath);
+    }
+
+    const outputDir = path.dirname(this.zipPath);
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
     }
 
     this.output = fs.createWriteStream(this.zipPath);
@@ -97,11 +119,60 @@ class DirArchiver {
     });
 
     this.archive.pipe(this.output);
-    this.traverseDirectoryTree(this.directoryPath);
-    this.archive.finalize();
     this.output.on("close", function () {
-      console.log(`Created: ${path.resolve(self.zipPath)} of ${self.prettyBytes(self.archive.pointer())}`);
+      console.log(
+        `Created: ${path.resolve(self.zipPath)} of ${self.prettyBytes(
+          self.archive.pointer()
+        )}`
+      );
+
+      if (done) {
+        done();
+      }
     });
+
+    if (this.ignoreFile) {
+      const ignoreFilePath = path.join(process.cwd(), this.ignoreFile);
+      console.log("Using ignore file:", ignoreFilePath);
+
+      Ignore({
+        path: this.directoryPath,
+        ignoreFiles: [this.ignoreFile],
+      })
+        .on("child", (c) => {
+          if (this.verbose) {
+            console.log("zipping: ", c.path);
+          }
+
+          let targetPath = c.path;
+          if (!this.flat) {
+            // use destination dirname as top-level zip folder
+            targetPath = path.relative(
+              this.directoryPath,
+              path.join(
+                c.root.path,
+                path.basename(this.directoryPath),
+                c.path.substr(c.root.path.length)
+              )
+            );
+          } else {
+            targetPath = path.relative(this.directoryPath, targetPath);
+          }
+          this.archive.file(c.path, {
+            name: targetPath,
+          });
+        })
+        .on("close", () => {
+          this.archive.finalize();
+        });
+    } else {
+      this.traverseDirectoryTree(this.directoryPath);
+      this.archive.finalize();
+    }
+  }
+
+  createZipAsync() {
+    return new Promise(resolve => this.createZip(resolve));
   }
 }
 module.exports = DirArchiver;
