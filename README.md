@@ -1,7 +1,8 @@
 [![npm][npm-image]][npm-url] [![license][license-image]][license-url]
 [![changelog][changelog-image]][changelog-url]
 
-# Dir Compressor 
+# Dir Compressor
+
 Compress a whole directory (including subdirectories) into a zip file, with options to exclude specific files, or directories. and an option to specify how the zip will be created
 
 # Installation
@@ -9,6 +10,7 @@ Compress a whole directory (including subdirectories) into a zip file, with opt
 ```sh
 $ npm install dir-compressor -D
 ```
+
 ```sh
 $ yarn add dir-compressor --dev
 ```
@@ -19,42 +21,49 @@ $ yarn add dir-compressor --dev
 
 ```javascript
 // Require modules.
-var DirCompressor = require('dir-compressor');
+var DirCompressor = require("dir-compressor");
 
 // Create an array with the files and directories to exclude.
-const excludes = ['directory_name', 'file.extension'];
+const excludes = ["directory_name", "file.extension"];
 
 /**
- * Create a dir-compressor object. 
+ * Create a dir-compressor object.
  * @param {string} directoryPath - The path of the folder to archive.
  * @param {string} zipPath - The path of the zip file to create.
  * @param {array} excludes - A list with the names of the files and folders to exclude.
  * @param {boolean} flatOff - Whether to turn off flattening
- * @param {string} ignoreFile - A .gitignore or similar file to respect from the destination folder
-*/
-var archive = new Dircompressor('path/to/directory', 'path/to/desination/zipfile.zip', excludes);
+ * @param {string} ignoreFile - A .gitignore or similar file to respect
+ */
+var archive = new Dircompressor(
+  "path/to/directory",
+  "path/to/desination/zipfile.zip",
+  excludes
+);
 
 // Create the zip file.
 archive.createZip();
 ```
+
 ## Command Line Interface
 
 ```sh
-Usage: 
+Usage:
 
     dir-compressor --src <path-to-directory> --dest <path-to-file>.zip --exclude folder-name file-name.extention
 
     dir-compressor --src <path-to-directory> --dist <path-to-file>.zip --ignoreFile <ignorefile>
 
 Options:
-  --src      The path of the folder to archive.
-  --dest     The path of the zip file to create.
-  --exclude  Specify a list with the names of the files and folders to exclude
-  --flatOff  Include the directory inside the zip, meaning append files from a sub-directory, putting its contents at the root of archive
-  --ignoreFile Specify a .gitignore or similar file to ignore files/directories (exclude is disabled)
+  --src         The path of the folder to archive.
+  --dest        The path of the zip file to create.
+  --flatOff     Include the directory inside the zip, meaning append files from a sub-directory, putting its contents at the root of archive
+  --exclude     Specify a list with the names of the files and folders to exclude (do not use ignoreFile)
+  --ignoreFile  Specify a .gitignore or similar file to ignore files/directories (do not use exclude)
 ```
 
+### Ignore File
 
+If you specify an ignore file (like `.gitignore`) and the zip file will be created within the directory structure you're zipping, be sure to include `.zip` or a similar ignore entry otherwise it will **NOT** ignore the zip file.
 
 [changelog-image]: https://img.shields.io/badge/changelog-md-blue.svg?style=flat-square
 [changelog-url]: CHANGELOG.md

@@ -11,13 +11,16 @@ class DirArchiver {
    * @param {string} directoryPath - the path of the folder to archive.
    * @param {string} zipPath - The path of the zip file to create.
    * @param {array} excludes - The name of the files and foldes to exclude.
+   * @param {string} ignoreFile - A .gitignore or similar file to respect.
+   * @param {boolean} verbose - Whether or not to be noisy.
    */
-  constructor(directoryPath, zipPath, excludes, flat = true, ignoreFile) {
+  constructor(directoryPath, zipPath, excludes, flat = true, ignoreFile, verbose = false) {
     this.excludes = excludes;
     this.directoryPath = directoryPath;
     this.zipPath = zipPath;
     this.flat = flat;
     this.ignoreFile = ignoreFile;
+    this.verbose = verbose;
     if (this.flat) {
       this.zipPathPrefix = directoryPath.replace("./", "").split("/")[0];
       if (this.zipPathPrefix == ".") {
@@ -83,6 +86,12 @@ class DirArchiver {
       fs.unlinkSync(this.zipPath);
     }
 
+    const outputDir = path.dirname(this.zipPath);
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
     this.output = fs.createWriteStream(this.zipPath);
     this.archive = archiver("zip", {
       zlib: { level: 9 },
@@ -112,10 +121,21 @@ class DirArchiver {
     });
 
     if (this.ignoreFile) {
-      Ignore({ path: this.directoryPath, ignoreFiles: [this.ignoreFile] })
+      const ignoreFilePath = path.join(process.cwd(), this.ignoreFile);
+      console.log("Using ignore file:", ignoreFilePath);
+
+      Ignore({
+        path: this.directoryPath,
+        ignoreFiles: [this.ignoreFile],
+      })
         .on("child", (c) => {
+          if (this.verbose) {
+            console.log("zipping: ", c.path);
+          }
+
           let targetPath = c.path;
           if (!this.flat) {
+            // use destination dirname as top-level zip folder
             targetPath = path.relative(
               this.directoryPath,
               path.join(
