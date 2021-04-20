@@ -7,6 +7,6 @@ describe("Zipping directory's", () => {
     await del("./test/output");
     await makeDir("./test/output");
     const test = new Zip("test/test zip folder", "./test/output/test.zip", ["more files here"]);
-    await test.createZip();
+    await test.createZipAsync();
   });
 });

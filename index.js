@@ -14,7 +14,14 @@ class DirArchiver {
    * @param {string} ignoreFile - A .gitignore or similar file to respect.
    * @param {boolean} verbose - Whether or not to be noisy.
    */
-  constructor(directoryPath, zipPath, excludes, flat = true, ignoreFile, verbose = false) {
+  constructor(
+    directoryPath,
+    zipPath,
+    excludes,
+    flat = true,
+    ignoreFile,
+    verbose = false
+  ) {
     this.excludes = excludes;
     this.directoryPath = directoryPath;
     this.zipPath = zipPath;
@@ -79,7 +86,7 @@ class DirArchiver {
     return bytes + " bytes";
   }
 
-  createZip() {
+  createZip(done) {
     const self = this;
 
     if (fs.existsSync(this.zipPath)) {
@@ -118,6 +125,10 @@ class DirArchiver {
           self.archive.pointer()
         )}`
       );
+
+      if (done) {
+        done();
+      }
     });
 
     if (this.ignoreFile) {
@@ -158,6 +169,10 @@ class DirArchiver {
       this.traverseDirectoryTree(this.directoryPath);
       this.archive.finalize();
     }
+  }
+
+  createZipAsync() {
+    return new Promise(resolve => this.createZip(resolve));
   }
 }
 module.exports = DirArchiver;

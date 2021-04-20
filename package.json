@@ -4,6 +4,9 @@
   "description": "Npm module to Compress a whole directory (including subdirectories) into a zip file, with options to exclude specific files, or directories.",
   "license": "MIT",
   "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
   "bin": {
     "dir-compressor": "cli.js"
   },
