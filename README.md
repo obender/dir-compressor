@@ -29,6 +29,8 @@ const excludes = ['directory_name', 'file.extension'];
  * @param {string} directoryPath - The path of the folder to archive.
  * @param {string} zipPath - The path of the zip file to create.
  * @param {array} excludes - A list with the names of the files and folders to exclude.
+ * @param {boolean} flatOff - Whether to turn off flattening
+ * @param {string} ignoreFile - A .gitignore or similar file to respect from the destination folder
 */
 var archive = new Dircompressor('path/to/directory', 'path/to/desination/zipfile.zip', excludes);
 
@@ -38,14 +40,18 @@ archive.createZip();
 ## Command Line Interface
 
 ```sh
-Usage: dir-compressor --src <path-to-directory> --dest <path-to-file>.zip --exclude folder-name file-name.extention
+Usage: 
+
+    dir-compressor --src <path-to-directory> --dest <path-to-file>.zip --exclude folder-name file-name.extention
+
+    dir-compressor --src <path-to-directory> --dist <path-to-file>.zip --ignoreFile <ignorefile>
 
 Options:
   --src      The path of the folder to archive.
   --dest     The path of the zip file to create.
   --exclude  Specify a list with the names of the files and folders to exclude
   --flatOff  Include the directory inside the zip, meaning append files from a sub-directory, putting its contents at the root of archive
-
+  --ignoreFile Specify a .gitignore or similar file to ignore files/directories (exclude is disabled)
 ```
 
 
