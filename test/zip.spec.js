@@ -9,4 +9,11 @@ describe("Zipping directory's", () => {
     const test = new Zip("test/test zip folder", "./test/output/test.zip", ["more files here"]);
     await test.createZipAsync();
   });
+
+  it("should support ignore file", async () => {
+    await del("./test/output");
+    await makeDir("./test/output");
+    const test = new Zip("test/test zip folder", "./test/output/test.ignore.zip", [], true, "test/.ignore");
+    await test.createZipAsync();
+  });
 });
